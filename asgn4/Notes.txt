@@ -1,0 +1,148 @@
+Pool Of threads:
+
+Threads Waiting in function
+
+Main Thread-Starts Program
+-Accepts Requests
+-communicates with workers through the queue
+-doesn't directly call Handle_connection
+-pushes sockets
+-workers pop sockets from the queue
+-Request-Id-used for tests to check the ordering
+
+
+
+
+-pthread_create t times
+
+-Each Thread is basically doing logic of HTTP server from asgn1
+-working in a while loop.
+
+
+-Each thread thinks single threaded server
+-Send Response
+-Be careful working with shared memory
+-local variables
+-malloc could assign same chunk to different threads
+-use static buffer for Requests
+
+
+-Audit Log is consistent with the response the server gives
+-E.G request 1 comes before request 2, but request 2 finishes before request 1.
+    -Request 2 should appear first in audit logic
+-print to audit log right before you send the response
+
+
+
+main server: calling accept, puts file descripto
+
+open socket
+initalize threads
+initalize queue
+
+
+int main() {
+for (t times) {
+    pthread_create(id, NULL, handle_connection, args);
+}
+while(1) {
+    int socketid = listener_accpet();
+    queue_push(q,socketid);
+}
+
+}
+
+void handle_connection(args) {
+    void *socketid
+    int request = queue_pop(q,socketid);
+
+    parse_request_line(request);
+    optional: pare_headers(request); //my implementation shouldn't need separate
+
+    if(GET) {
+        handle_get();
+    } else if(PUT) {
+        handle_put()
+    } else {
+        handle_unsupported();
+    }
+
+}
+
+
+
+
+
+loop:
+    listen for Requests
+    if request, add socket to queue
+    repeat
+
+
+Thread itself talks with the client(and closes the connection)
+
+Threads:
+
+Loop:
+    If thing in buffer
+        pop the thing in buffer
+        use server logic on the socket
+        write to audit log
+        write to client
+        close connection
+    else:
+        wait
+
+
+
+
+
+pthread_create-pass a function(handle_connection)
+
+
+
+
+thread safety:
+handle_get():
+    pthread_mutex_lock(&mutex);
+    int fd = open(uri);
+    rwlock = get_uri_rwlock(uri);//function to make/get rwlock for given uri
+    pthread_rwlock.unlock(&mutex);
+
+
+    send_response(id);
+    send_file(fd);
+    reader_unlock(rwlock);
+    audit_log();
+
+
+synchronization:
+-make sure only one thread across server is OPENING(so using the open() function) a given file at any time
+    -even if two threads are opening different files
+
+-afterwards then you can have multiple threads reading from file. Each file has different reader/writer lock 
+
+
+-use a hash_table or a linked list to track reader/writer locks that have already been created
+    -either global or pass in the hash_table with the function
+    -handle in seperate file
+    -array of linked lists hash_table -suggested
+    -associate URI(key) with RWLOCK(value)
+
+
+largest test operates on 100 seperate files, so realistically don't need to worry about deleting
+
+
+
+
+-same as above for put, just use rwlock but with write
+    -nway with n set to 1!
+
+
+
+
+10 Tests Total: 
+8 given, 2 hidden
+
+Ratio will stay the same if more added
+
